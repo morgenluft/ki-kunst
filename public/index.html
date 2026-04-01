@@ -19,21 +19,29 @@
     </div>
 
     <script>
-        async function generate() {
-            const prompt = document.getElementById('prompt').value;
-            const output = document.getElementById('output');
-            output.innerText = "Künstliche Intelligenz denkt nach...";
+      async function generate() {
+    const promptValue = document.getElementById('prompt').value;
+    const output = document.getElementById('output');
+    output.innerText = "KI generiert Antwort...";
 
-            const res = await fetch('/api/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt })
-            });
-            const data = await res.json();
-            // Hier würde die Anzeige des Bildes/Links folgen
-            output.innerText = "Antwort erhalten! (Check die Console für Details)";
-            console.log(data);
+    try {
+        const res = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: promptValue })
+        });
+        const data = await res.json();
+
+        if (data.error) {
+            output.innerText = "Fehler: " + data.error;
+        } else {
+            // Zeigt den Text von Gemini an
+            output.innerText = data.result;
         }
+    } catch (e) {
+        output.innerText = "Netzwerkfehler!";
+    }
+}
     </script>
 </body>
 </html>
