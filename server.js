@@ -1,29 +1,62 @@
 const express = require('express');
-const app = express();
 const path = require('path');
+// "node-fetch" ist in neueren Node-Versionen (die Render nutzt) eingebaut.
+// Falls Render meckert, füge "node-fetch" zu deiner package.json hinzu.
 
+const app = express();
+
+// Middleware: Erlaubt dem Server, JSON-Daten zu lesen
 app.use(express.json());
-app.use(express.static('public')); // Hier liegen HTML/JS
 
+// Frontend-Dateien aus dem Ordner "public" servieren
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Der Endpunkt für deine Webseite
 app.post('/api/generate', async (req, res) => {
     const { prompt } = req.body;
-    const apiKey = process.env.GEMINI_API_KEY; // Variable von Render
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+        return res.status(500).json({ error: "API-Key fehlt in den Render-Einstellungen!" });
+    }
 
     try {
-        // Hinweis: Dies ist ein vereinfachter Aufruf für die Gemini-Schnittstelle
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        // Wir nutzen das stabile 1.5-flash Modell
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+        const response = await fetch(apiUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: `Erzeuge ein Bild basierend auf diesem Prompt: ${prompt}` }] }]
+                contents: [{
+                    parts: [{ text: prompt }]
+                }]
             })
         });
+
         const data = await response.json();
-        res.json(data);
+
+        // Fehlerbehandlung, falls Google eine Fehlermeldung schickt
+        if (data.error) {
+            console.error("Google API Fehler:", data.error);
+            return res.status(data.error.code || 500).json({ error: data.error.message });
+        }
+
+        // Die Antwort von Gemini extrahieren
+        const aiResponse = data.candidates[0].content.parts[0].text;
+        
+        res.json({ result: aiResponse });
+
     } catch (error) {
-        res.status(500).json({ error: "Fehler bei der Generierung" });
+        console.error("Server Fehler:", error);
+        res.status(500).json({ error: "Verbindung zu Gemini fehlgeschlagen." });
     }
 });
 
+// Port-Einstellung für Render
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`Server läuft auf Port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Server läuft auf Port ${PORT}`);
+});
