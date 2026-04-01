@@ -42,6 +42,8 @@ app.post('/api/generate', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 10000;
+
+// WICHTIG: '0.0.0.0' muss als zweites Argument hinzugefügt werden!
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server aktiv auf Port ${PORT}`);
+    console.log(`Server läuft auf Port ${PORT} und ist extern erreichbar.`);
 });
