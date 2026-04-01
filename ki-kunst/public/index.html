@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Mein KI Bild-Generator</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f4f4f4; }
+        .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-top: 50px; }
+        input { padding: 10px; width: 300px; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 10px 20px; background: #4285f4; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gemini Image Art</h1>
+        <input type="text" id="prompt" placeholder="Sonniger Strand auf dem Mars...">
+        <button onclick="generate()">Bild erstellen</button>
+        <div id="output"></div>
+    </div>
+
+    <script>
+        async function generate() {
+            const prompt = document.getElementById('prompt').value;
+            const output = document.getElementById('output');
+            output.innerText = "Künstliche Intelligenz denkt nach...";
+
+            const res = await fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt })
+            });
+            const data = await res.json();
+            // Hier würde die Anzeige des Bildes/Links folgen
+            output.innerText = "Antwort erhalten! (Check die Console für Details)";
+            console.log(data);
+        }
+    </script>
+</body>
+</html>
